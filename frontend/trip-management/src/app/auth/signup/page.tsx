@@ -1,15 +1,14 @@
 "use client"; // Keep this if using app router
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GoogleOutlined } from "@ant-design/icons";
 import AppHeader from "../../components/header";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation"; // or 'next/router' for pages router
 import Link from "next/link";
 import { notification, message } from "antd";
-import useMediaQuery from '@mui/material/useMediaQuery';
+import useMediaQuery from "@mui/material/useMediaQuery";
 import AppHeaderMobile from "../../components/headerMobile";
-
 
 interface SignupFormData {
     name: string;
@@ -28,21 +27,71 @@ export default function Signup() {
     });
     const [isPasswordError, setIsPasswordError] = useState<boolean>(false);
     const [isEmailError, setIsEmailError] = useState<boolean>(false);
-    const isMobile = useMediaQuery('(max-width: 768px)');
-
+    const isMobile = useMediaQuery("(max-width: 768px)");
 
     const [api, contextHolder] = message.useMessage();
 
+    // In Signup.tsx, after your state declarations
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get("error");
+        const message = urlParams.get("message");
+
+        if (error === "account_exists") {
+            api.open({
+                type: "error",
+                content:
+                    "An account with this Google email already exists. Please log in instead.",
+            });
+            router.push("/auth/login");
+        } else if (message === "signup_success") {
+            api.open({
+                type: "success",
+                content: "Account created successfully. Please log in.",
+            });
+        }
+    }, [api, router]);
+
+    // In Signup.tsx
     const handleGoogleSignup = () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+        // Clear any existing Google OAuth state
+        localStorage.removeItem("googleOAuthState");
+
+        // Clear any Google-specific cookies
+        document.cookie.split(";").forEach((c) => {
+            if (c.includes("G_AUTH") || c.includes("g_state")) {
+                const cookieName = c.split("=")[0].trim();
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+        });
+
+        // Force a fresh Google auth flow
+        const timestamp = new Date().getTime();
+        const randomState = Math.random().toString(36).substring(7);
+        const authUrl = new URL(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+        );
+
+        // Add all necessary parameters
+        authUrl.searchParams.append("state", "signup");
+        authUrl.searchParams.append("prompt", "select_account");
+        authUrl.searchParams.append("approval_prompt", "force");
+        authUrl.searchParams.append("access_type", "offline");
+        authUrl.searchParams.append("include_granted_scopes", "true");
+        authUrl.searchParams.append("timestamp", timestamp.toString());
+        authUrl.searchParams.append("random", randomState);
+
+        // Open in a new window to avoid cache
+        const authWindow = window.open(authUrl.toString(), "_self");
+        if (authWindow) authWindow.focus();
     };
 
     const showErrorMessage = (message: string) => {
         api.open({
-            type: 'error',
+            type: "error",
             content: message,
-          });
-    }
+        });
+    };
 
     const getInputClassName = (isPassword: boolean) => {
         return `block w-full rounded-md border-2 ${
@@ -64,27 +113,30 @@ export default function Signup() {
         mutationFn: async (
             userData: Omit<SignupFormData, "password_match">
         ) => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signup`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    name: userData.name,
-                    email: userData.email,
-                    password_hash: userData.password,
-                    created_by: 1,
-                    updated_by: 1,
-                    refreshToken: "",
-                }),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/signup`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        name: userData.name,
+                        email: userData.email,
+                        password_hash: userData.password,
+                        created_by: 1,
+                        updated_by: 1,
+                        refreshToken: "",
+                    }),
+                }
+            );
 
             if (!response.ok) {
                 const errorData = await response.json();
                 if (errorData.message === "User already exists") {
                     setIsEmailError(true);
                 } else {
-                    showErrorMessage("Failed to sign up. Try again")
+                    showErrorMessage("Failed to sign up. Try again");
                 }
                 throw new Error(errorData.message || "Failed to sign up");
             }
@@ -138,9 +190,13 @@ export default function Signup() {
 
     return (
         <div
-            className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
+            className={`min-h-screen ${
+                isMobile
+                    ? "bg-white"
+                    : "bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]"
+            } text-black font-sans`}
             style={{
-                backgroundImage: `${isMobile ? '' : 'url(/images/bg1.jpg)'}`,
+                backgroundImage: `${isMobile ? "" : "url(/images/bg1.jpg)"}`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
@@ -237,7 +293,10 @@ export default function Signup() {
 
                     <div className="flex justify-center">
                         <p>Already have an account?</p>
-                        <Link href="/auth/login" className="text-[#6CB4EE] ml-2 hover:underline">
+                        <Link
+                            href="/auth/login"
+                            className="text-[#6CB4EE] ml-2 hover:underline"
+                        >
                             Login
                         </Link>
                     </div>
@@ -270,7 +329,7 @@ export default function Signup() {
                         </button>
                     </div>
                 </form>
-            <div className="mb-2 text-white"> . </div>
+                <div className="mb-2 text-white"> . </div>
             </div>
         </div>
     );
