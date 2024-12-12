@@ -54,9 +54,9 @@ export default function Signup() {
 
     // In Signup.tsx
     const handleGoogleSignup = () => {
-        // Generate a more robust state that includes signup-specific information
+        // Generate state with signup intent
         const state = JSON.stringify({
-            type: "signup", // Explicitly mark this as a signup flow
+            type: "signup",
             timestamp: Date.now(),
             nonce: Math.random().toString(36).substring(2),
         });
@@ -67,31 +67,28 @@ export default function Signup() {
 
         // Add all necessary OAuth parameters
         authUrl.searchParams.append("state", encodeURIComponent(state));
-        authUrl.searchParams.append("prompt", "select_account"); // Force account picker
-        authUrl.searchParams.append("approval_prompt", "force"); // Force consent screen
-        authUrl.searchParams.append("access_type", "offline"); // Get refresh token
+        authUrl.searchParams.append("prompt", "select_account consent");
+        authUrl.searchParams.append("access_type", "offline");
+        authUrl.searchParams.append("approval_prompt", "force");
         authUrl.searchParams.append("include_granted_scopes", "true");
-        authUrl.searchParams.append("response_type", "code"); // Request authorization code
 
-        // Clear any existing Google OAuth state
-        localStorage.removeItem("googleOAuthState");
-        sessionStorage.removeItem("googleOAuthState");
+        // Clear all possible storage
+        localStorage.clear();
+        sessionStorage.clear();
 
-        // Clear any existing Google-specific cookies
-        document.cookie.split(";").forEach((c) => {
-            const cookie = c.trim();
-            if (cookie.startsWith("G_AUTH") || cookie.startsWith("g_state")) {
-                const cookieName = cookie.split("=")[0];
-                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-            }
-        });
+        // Clear cookies more aggressively
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            const cookieName = cookie.split("=")[0].trim();
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+        }
 
-        // Before redirect, store signup intent
-        sessionStorage.setItem("authIntent", "signup");
+        // Add a random query parameter to bust any cache
+        authUrl.searchParams.append("_", Date.now().toString());
 
-        // Open the authorization URL in the same window
-        const authWindow = window.open(authUrl.toString(), "_self");
-        if (authWindow) authWindow.focus();
+        // Open in same window but force reload
+        window.location.href = authUrl.toString();
     };
 
     const showErrorMessage = (message: string) => {
