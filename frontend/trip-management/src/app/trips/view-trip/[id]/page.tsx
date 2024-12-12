@@ -205,23 +205,24 @@ export default function ViewTrip() {
                 `${process.env.NEXT_PUBLIC_FRONTEND_HOST}/trips/join/${tripId}`
             );
             api.open({
-                type: "success",
-                content: "Invite link copied",
+                type: 'success',
+                content: 'Invite link copied',
             });
         } catch (err) {
             api.open({
-                type: "error",
-                content: "Failed to copy, please try again.",
+                type: 'error',
+                content: 'Failed to copy, please try again.'
             });
         }
-    };
-
+    }
+        
     useEffect(() => {
         setIsClient(true);
     }, []);
 
     // 4. Form hook
     const [form] = Form.useForm();
+
 
     // 5. Constants
     const budget = 1000;
@@ -378,54 +379,27 @@ export default function ViewTrip() {
         setExpenseModalVisible(true);
     };
 
-    const handleEditSubmit = async (values: any) => {
-        if (!selectedLocation?.id) return;
-
-        try {
-            setIsLocationLoading(true);
-            const updateData = {
-                name: values.activityName,
-                description: values.notes || "",
-                latitude: parseFloat(values.lat),
-                longitude: parseFloat(values.lng),
-                start_date: values.startDate.format("YYYY-MM-DD"),
-                end_date: values.endDate.format("YYYY-MM-DD"),
-                updated_by: userId,
-            };
-
-            const updatedLocation = await updateLocation(
-                selectedLocation.id,
-                updateData,
-                tokens!,
-                setAuthTokens
-            );
-
-            // Update locations state
-            setLocations(
-                locations.map((loc) =>
-                    loc.id === selectedLocation.id
-                        ? { ...loc, ...updatedLocation }
-                        : loc
-                )
-            );
-
-            // Show success message
-            api.open({
-                type: "success",
-                content: "Location updated successfully",
+    const handleEditLocation = (location: Location) => {
+        // Don't allow editing if location is visited
+        if (location.visited) {
+            Modal.info({
+                title: "Cannot Edit Visited Location",
+                content: "Locations marked as visited cannot be edited.",
             });
-
-            // Only close modal and reset form after successful update
-            editForm.resetFields();
-            setIsEditModalVisible(false);
-        } catch (error) {
-            api.open({
-                type: "error",
-                content: "Failed to update location. Please try again",
-            });
-        } finally {
-            setIsLocationLoading(false);
+            return;
         }
+
+        // Proceed with editing if not visited
+        editForm.setFieldsValue({
+            activityName: location.name,
+            startDate: dayjs(location.start_date),
+            endDate: dayjs(location.end_date),
+            lat: location.latitude?.toString(),
+            lng: location.longitude?.toString(),
+            notes: location.description,
+        });
+        setSelectedLocation(location);
+        setIsEditModalVisible(true);
     };
 
     const handleEditSubmit = async (values: any) => {
@@ -543,8 +517,8 @@ export default function ViewTrip() {
 
     // Add the status update handler function
     const handleStatusUpdate = async (transaction) => {
-        setStatusLoading(true);
-        setLoadingTransactionId(transaction.id);
+        setStatusLoading(true)
+        setLoadingTransactionId(transaction.id)
         try {
             const newStatus = transaction.status === "paid" ? "unpaid" : "paid";
 
@@ -578,8 +552,8 @@ export default function ViewTrip() {
                     "Failed to update transaction status, please try again",
             });
         } finally {
-            setStatusLoading(false);
-            setLoadingTransactionId(null);
+            setStatusLoading(false)
+            setLoadingTransactionId(null)
         }
     };
 
@@ -714,7 +688,7 @@ export default function ViewTrip() {
                                 currentDate.isAfter(tripEndDate, "day")
                             );
                         }}
-                    />
+                        />
                 </Form.Item>
 
                 <Form.Item
@@ -731,10 +705,10 @@ export default function ViewTrip() {
                                 if (!value) return;
                                 const startDate =
                                     form.getFieldValue("startDate");
-                                const selectedDate = value.startOf("day");
+                                    const selectedDate = value.startOf("day");
 
-                                if (
-                                    startDate &&
+                                    if (
+                                        startDate &&
                                     selectedDate.isBefore(startDate, "day")
                                 ) {
                                     throw new Error(
@@ -778,14 +752,9 @@ export default function ViewTrip() {
             title="Edit Destination"
             open={isEditModalVisible}
             onCancel={() => {
-                if (!isLocationLoading) {
-                    // Only allow closing if not loading
-                    setIsEditModalVisible(false);
-                    editForm.resetFields();
-                }
+                setIsEditModalVisible(false);
+                editForm.resetFields();
             }}
-            maskClosable={!isLocationLoading} // Prevent clicking outside to close while loading
-            closable={!isLocationLoading} // Hide the X button while loading
             footer={null}
             width={600}
         >
@@ -835,24 +804,24 @@ export default function ViewTrip() {
                         htmlType="submit"
                         className="bg-[#002D62]"
                         loading={isLocationLoading}
-                    >
+                        >
                         Update
                     </Button>
                 </Form.Item>
             </Form>
         </Modal>
     );
-
+    
     // Loading states
     // Replace the existing loading return statement with this:
     if (isLoading) {
         return <LoadingScreen />;
     }
-
+    
     if (!tripData || !tripGroup) {
         return <LoadingScreen />;
     }
-
+    
     if (!tripData || !tripGroup) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -860,7 +829,7 @@ export default function ViewTrip() {
             </div>
         );
     }
-
+    
     const columns = [
         {
             title: "Category",
@@ -879,13 +848,13 @@ export default function ViewTrip() {
             key: "status",
             render: (status, record) => (
                 <Button
-                    loading={loadingTransactionId === record.id}
+                loading={loadingTransactionId === record.id}
                     onClick={() => handleStatusUpdate(record)}
                     type={status === "paid" ? "primary" : "default"}
                     className={`${
                         status === "paid"
-                            ? "bg-green-500 hover:bg-green-600"
-                            : "bg-gray-200 hover:bg-gray-300"
+                        ? "bg-green-500 hover:bg-green-600"
+                        : "bg-gray-200 hover:bg-gray-300"
                     }`}
                 >
                     {status
@@ -902,13 +871,13 @@ export default function ViewTrip() {
                 date ? new Date(date).toLocaleDateString() : "N/A",
         },
     ];
-
+    
     // Calculate derived values
     const totalExpenses = transactions.reduce((total, curr) => {
         const expense = parseFloat(curr.amount);
         return total + expense;
     }, 0);
-
+    
     const categoryData = {
         labels: ["Accommodation", "Food", "Transport", "Shopping"],
         datasets: [
@@ -920,12 +889,12 @@ export default function ViewTrip() {
             },
         ],
     };
-
+    
     interface TransactionWithCategory {
         amount: string;
         category?: { category: string };
     }
-
+    
     const ExpenseCategoryChart = () => {
         // Group transactions by category and sum the amounts
         const categoryTotals = transactionsWithCategories.reduce(
@@ -935,12 +904,12 @@ export default function ViewTrip() {
             ) => {
                 const categoryName = transaction.category?.category || "Other";
                 acc[categoryName] =
-                    (acc[categoryName] || 0) + Number(transaction.amount);
+                (acc[categoryName] || 0) + Number(transaction.amount);
                 return acc;
             },
             {}
         );
-
+        
         // Prepare data for the pie chart
         const chartData = {
             labels: Object.keys(categoryTotals),
@@ -962,7 +931,7 @@ export default function ViewTrip() {
                 },
             ],
         };
-
+        
         return (
             <div className="mb-4">
                 <h3 className="text-lg font-semibold mb-4">
@@ -970,8 +939,8 @@ export default function ViewTrip() {
                 </h3>
                 {transactionsWithCategories.length > 0 ? (
                     <Pie
-                        data={chartData}
-                        options={{
+                    data={chartData}
+                    options={{
                             plugins: {
                                 tooltip: {
                                     callbacks: {
@@ -991,9 +960,9 @@ export default function ViewTrip() {
                                 },
                             },
                         }}
-                    />
-                ) : (
-                    <div className="text-center text-gray-500 py-8">
+                        />
+                    ) : (
+                        <div className="text-center text-gray-500 py-8">
                         No expenses recorded yet
                     </div>
                 )}
@@ -1010,16 +979,16 @@ export default function ViewTrip() {
                           transaction.transaction_date
                       ).toLocaleDateString()
                     : new Date().toLocaleDateString();
-                acc[date] = (acc[date] || 0) + Number(transaction.amount);
-                return acc;
-            },
+                    acc[date] = (acc[date] || 0) + Number(transaction.amount);
+                    return acc;
+                },
             {}
         );
-
+        
         // Calculate cumulative spending
         let cumulativeSpending = 0;
         const cumulativeData = Object.entries(dailySpending)
-            .sort(
+        .sort(
                 ([dateA], [dateB]) =>
                     new Date(dateA).getTime() - new Date(dateB).getTime()
             )
@@ -1031,7 +1000,7 @@ export default function ViewTrip() {
                     cumulativeAmount: cumulativeSpending,
                 };
             });
-
+            
         const chartData = {
             labels: cumulativeData.map((item) => item.date),
             datasets: [
@@ -1100,7 +1069,7 @@ export default function ViewTrip() {
                 },
             },
         };
-
+        
         return (
             <div className="mb-4">
                 <h3 className="text-lg font-semibold mb-4">
