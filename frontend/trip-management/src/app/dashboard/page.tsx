@@ -16,6 +16,8 @@ import { fetchBudgetsByTripIds } from "../../api/budgets";
 import { getAllTripGroups } from "../../api/tripgroup";
 import LoadingScreen from "../components/LoadingScreen";
 import { io } from 'socket.io-client';
+import useMediaQuery from '@mui/material/useMediaQuery';
+
 
 const { Meta } = Card;
 const { Option } = Select;
@@ -91,6 +93,8 @@ export default function Dashboard() {
     const [api, notifcontextHolder] = notification.useNotification({
         stack: {threshold: 1}
       });
+    const isMobile = useMediaQuery('(max-width: 430px)');
+    
 
     // Socket.io: Listen for real-time notifications
     useEffect(() => {
@@ -161,6 +165,7 @@ export default function Dashboard() {
         duration: null,
         onClose: () => markAsRead(notification.id),
         icon: <span>🔔 {" "} </span>,
+        className: "notification"
         });
     };
 
@@ -435,7 +440,7 @@ export default function Dashboard() {
                     <Select
                         value={filterType}
                         onChange={(value) => setFilterType(value)}
-                        className="h-12 w-[30%] rounded-lg shadow-lg"
+                        className={`h-12 ${isMobile ? 'w-[40%]' : 'w-[30%]'} rounded-lg shadow-lg`}
                         style={{ fontSize: "16px" }}
                     >
                         <Option value="incomplete">Active Trips</Option>
@@ -476,7 +481,7 @@ export default function Dashboard() {
                     Refresh
                 </Button>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-6">
                     {filteredTrips.map((budget, index) => (
                         <Card
                             key={index}
