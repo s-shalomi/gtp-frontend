@@ -8,6 +8,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../../../contexts/AuthContext";
 import { message, notification, Spin } from "antd";
 import Link from "next/link";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import AppHeaderMobile from "../../components/headerMobile";
+
 
 interface SignupFormData {
     email: string;
@@ -25,6 +28,10 @@ export default function Login() {
     const [isLoginError, setIsLoginError] = useState<boolean>(false);
     const [messageApi, contextHolder] = message.useMessage();
     const [loading, setLoading] = useState(false);
+    const isMobile = useMediaQuery('(max-width: 400px)');
+
+    
+
 
     const { setAuthTokens } = useAuth();
 
@@ -120,16 +127,16 @@ export default function Login() {
 
     return (
         <div
-            className="min-h-screen bg-gradient-to-r from-[#3A2A1D] to-[#5C7457] text-black font-sans"
+            className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
             style={{
                 backgroundImage: "url(/images/bg1.jpg)",
                 backgroundSize: "cover",
             }}
         >
             {contextHolder}
-            <AppHeader />
+            <AppHeaderMobile />
 
-            <div className="sm:mx-auto sm:w-auto mt-5 sm:max-w-sm bg-white p-8 rounded-lg shadow-xl">
+            <div className="auth-container">
                 <h2 className="text-center text-3xl font-extrabold text-[#3A2A1D] mb-4">
                     Sign in to your account
                 </h2>

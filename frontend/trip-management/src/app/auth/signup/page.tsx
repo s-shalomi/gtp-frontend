@@ -7,6 +7,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation"; // or 'next/router' for pages router
 import Link from "next/link";
 import { notification, message } from "antd";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import AppHeaderMobile from "../../components/headerMobile";
+
 
 interface SignupFormData {
     name: string;
@@ -25,6 +28,8 @@ export default function Signup() {
     });
     const [isPasswordError, setIsPasswordError] = useState<boolean>(false);
     const [isEmailError, setIsEmailError] = useState<boolean>(false);
+    const isMobile = useMediaQuery('(max-width: 400px)');
+
 
     const [api, contextHolder] = message.useMessage();
 
@@ -133,7 +138,7 @@ export default function Signup() {
 
     return (
         <div
-            className="min-h-screen bg-gradient-to-r from-[#3A2A1D] to-[#5C7457] text-black font-sans pb-20"
+            className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
             style={{
                 backgroundImage: "url(/images/bg1.jpg)",
                 backgroundSize: "cover",
@@ -142,9 +147,9 @@ export default function Signup() {
             }}
         >
             {contextHolder}
-            <AppHeader />
+            <AppHeaderMobile />
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm bg-white p-8 rounded-lg shadow-xl mt-8">
+            <div className="auth-container">
                 <h2 className="text-center text-3xl font-extrabold text-[#3A2A1D] mb-4">
                     Create an account
                 </h2>
