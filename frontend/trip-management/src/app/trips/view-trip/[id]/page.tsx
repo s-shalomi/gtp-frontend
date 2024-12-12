@@ -888,11 +888,9 @@ export default function ViewTrip() {
                 loading={loadingTransactionId === record.id}
                     onClick={() => handleStatusUpdate(record)}
                     type={status === "paid" ? "primary" : "default"}
-                    className={`${
-                        status === "paid"
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    }`}
+                    style={{
+                        backgroundColor: status === 'paid' ? 'bg-#0066b2 hover:bg-#6CB4EE' : 'bg-gray-200 hover:bg-gray-300'
+                    }}
                 >
                     {status
                         ? status.charAt(0).toUpperCase() + status.slice(1)
@@ -1137,16 +1135,16 @@ export default function ViewTrip() {
                         backgroundSize: "cover",
                     }}
                 >
-                    <Link
-                        href={"/dashboard"}
-                        className="flex items-center text-white font-semibold"
+                    <button
+                        onClick={() => {router.push('/dashboard')}}
+                        className="flex items-center text-white font-semibold hover:scale-110 transform transition"
                     >
                         <ArrowLeftOutlined className="mr-2" />
                         Dashboard
-                    </Link>
+                    </button>
                     <button
                         onClick={handleLogout}
-                        className="text-sm text-white hover:underline focus:outline-none"
+                        className="text-white text-sm font-semibold hover:scale-110 transform transition"
                     >
                         Logout
                     </button>
@@ -1252,7 +1250,7 @@ export default function ViewTrip() {
                                         type="primary"
                                         icon={<PlusOutlined />}
                                         onClick={showForm}
-                                        className="bg-[#002D62]"
+                                        className="bg-[#0066b2] hover:bg-[#6CB4EE]"
                                     />
                                 </div>
                                 <p className="mb-4">
@@ -1334,7 +1332,7 @@ export default function ViewTrip() {
                             </div>
                             <Button
                                 type="primary"
-                                className="bg-[#002D62] text-white hover:bg-[#001C4D] transition duration-200"
+                                className="bg-[#0066b2] text-white hover:bg-[#6CB4EE] transition duration-200"
                                 icon={<PlusOutlined />}
                                 onClick={handleAddExpense}
                             >

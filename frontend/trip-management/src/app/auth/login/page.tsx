@@ -272,7 +272,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={loginMutation.isPending}
-                            className="w-full py-3 px-4 text-white bg-[#0066b2] rounded-lg shadow-md hover:bg-[#6CB4EE] focus:ring-2 focus:ring-[#5C7457] focus:ring-offset-2 transition duration-200 flex items-center justify-center"
+                            className="w-full py-3 px-4 text-white bg-[#0066b2] rounded-lg shadow-md hover:bg-[#6CB4EE] focus:ring-2 focus:ring-offset-2 transition duration-200 flex items-center justify-center"
                         >
                             {loginMutation.isPending ? (
                                 <span className="flex items-center">

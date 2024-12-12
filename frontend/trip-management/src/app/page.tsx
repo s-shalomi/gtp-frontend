@@ -47,7 +47,7 @@ export default function Home() {
           <div className="py-5 pb-10">
             <a
               onClick={() => navigateTo('/auth/signup')}
-              className="px-6 py-3 bg-[#6CB4EE] text-white text-xl font-semibold rounded-full shadow-lg transform hover:scale-110 hover:bg-[#0066b2] hover:text-white transition ease-in-out duration-300"
+              className="px-6 py-3 bg-[#0066b2] text-white text-xl font-semibold rounded-full shadow-lg transform hover:scale-110 hover:bg-[#6CB4EE] hover:text-white transition ease-in-out duration-300"
             >
               Start Planning
             </a>

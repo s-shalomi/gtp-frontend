@@ -313,7 +313,7 @@ export default function JoinTripPage({ params }: PageProps) {
                                 icon={<CheckCircleOutlined />}
                                 onClick={handleAcceptInvite}
                                 loading={isJoining}
-                                className="w-full text-lg bg-[#002D62] hover:bg-[#001C4D] rounded-lg shadow-md"
+                                className="w-full text-lg bg-[#0066b2] hover:bg-[#6CB4EE] rounded-lg shadow-md"
                             >
                                 Join Trip
                             </Button>

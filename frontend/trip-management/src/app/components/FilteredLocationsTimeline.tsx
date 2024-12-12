@@ -127,11 +127,9 @@ const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
                                 onChange={() => onVisitToggle(location)}
                                 checkedChildren="Visited"
                                 unCheckedChildren="Not Visited"
-                                className={`${
-                                    location.visited
-                                        ? "bg-green-500"
-                                        : "bg-gray-400"
-                                }`}
+                                style={{
+                                    backgroundColor: location.visited ? '#0066b2' : 'gray'
+                                }}
                             />
                         )}
                     </div>
