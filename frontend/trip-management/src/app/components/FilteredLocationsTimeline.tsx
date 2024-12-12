@@ -159,7 +159,7 @@ const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
     };
 
     return (
-        <Card className="bg-white rounded-xl shadow-lg">
+        <Card className="border-white">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800">
                     Itinerary
@@ -181,7 +181,7 @@ const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
 
             {filteredLocations.length > 0 ? (
                 <div
-                    className="h-[450px] flex-1 overflow-y-auto pl-2 custom-modal"
+                    className="h-[450px] flex-1 overflow-y-auto pl-2 pr-2 custom-modal w-full"
                     style={{ paddingRight: "0.5rem" }}
                 >
                     <Timeline

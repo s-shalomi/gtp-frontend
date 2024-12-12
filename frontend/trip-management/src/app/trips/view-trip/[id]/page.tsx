@@ -1194,7 +1194,7 @@ export default function ViewTrip() {
                     {/* Itinerary and Map Section (Side by Side) */}
                     <div className="flex flex-col lg:flex-row gap-6 mb-6">
                         {/* Timeline */}
-                        <div className="w-full lg:w-1/2 pl-0 lg:pl-2">
+                        <div className="w-full lg:w-1/2 pl-0 bg-white rounded-xl shadow-md lg:pl-2">
                             <FilteredLocationsTimeline
                                 locations={locations}
                                 onEditLocation={handleEditLocation}
