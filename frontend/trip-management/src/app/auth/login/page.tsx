@@ -32,28 +32,73 @@ export default function Login() {
     const { setAuthTokens } = useAuth();
 
     // In both Login.tsx and Signup.tsx
-    const handleGoogleLogin = () => {
-        const authUrl = new URL(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/google/login`
-        );
+    const handleGoogleLogin = async () => {
+        try {
+            // First try to revoke Google's session
+            const revokeUrl = "https://accounts.google.com/logout";
+            const popupWindow = window.open(
+                revokeUrl,
+                "google_logout",
+                "width=450,height=600"
+            );
 
-        // Clear all possible storage
-        localStorage.clear();
-        sessionStorage.clear();
+            // Wait for logout window
+            await new Promise((resolve) =>
+                setTimeout(() => {
+                    if (popupWindow) popupWindow.close();
+                    resolve(true);
+                }, 2000)
+            );
 
-        // Clear cookies more aggressively
-        const cookies = document.cookie.split(";");
-        for (let cookie of cookies) {
-            const cookieName = cookie.split("=")[0].trim();
-            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
-            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Aggressively clear all cookies
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                const cookieName = cookie.split("=")[0].trim();
+                // Clear cookie for all possible paths and domains
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+            }
+
+            // Construct the Google auth URL with all necessary parameters
+            const authUrl = new URL(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/google/login`
+            );
+
+            // Add all parameters to force fresh authentication
+            authUrl.searchParams.append("prompt", "consent select_account");
+            authUrl.searchParams.append("response_type", "code");
+            authUrl.searchParams.append("access_type", "offline");
+            authUrl.searchParams.append("approval_prompt", "force");
+            authUrl.searchParams.append("include_granted_scopes", "true");
+
+            // Add cache busting parameters
+            authUrl.searchParams.append(
+                "state",
+                Math.random().toString(36).substring(7)
+            );
+            authUrl.searchParams.append(
+                "nonce",
+                Math.random().toString(36).substring(7)
+            );
+            authUrl.searchParams.append("timestamp", Date.now().toString());
+
+            // Redirect to the authentication URL
+            window.location.href = authUrl.toString();
+        } catch (error) {
+            console.error("Error during Google login preparation:", error);
+
+            // Fallback - direct to auth URL if something fails
+            const fallbackUrl = new URL(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/google/login`
+            );
+            fallbackUrl.searchParams.append("prompt", "select_account");
+            window.location.href = fallbackUrl.toString();
         }
-
-        // Add a random query parameter to bust any cache
-        authUrl.searchParams.append("_", Date.now().toString());
-
-        // Open in same window but force reload
-        window.location.href = authUrl.toString();
     };
 
     useEffect(() => {
