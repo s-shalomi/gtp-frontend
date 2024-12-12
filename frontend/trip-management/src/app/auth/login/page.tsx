@@ -31,7 +31,26 @@ export default function Login() {
 
     const { setAuthTokens } = useAuth();
 
+    // In both Login.tsx and Signup.tsx
     const handleGoogleLogin = () => {
+        // or handleGoogleSignup
+        const state = JSON.stringify({
+            type: "login", // or 'signup' for Signup.tsx
+            timestamp: Date.now(),
+            nonce: Math.random().toString(36).substring(2),
+        });
+
+        const authUrl = new URL(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+        );
+        authUrl.searchParams.append("state", encodeURIComponent(state));
+        authUrl.searchParams.append("prompt", "select_account"); // Forces account selection
+        authUrl.searchParams.append("access_type", "offline");
+
+        // Add these parameters to force fresh authentication
+        authUrl.searchParams.append("approval_prompt", "force");
+        authUrl.searchParams.append("include_granted_scopes", "true");
+
         // Clear any existing Google OAuth state
         localStorage.removeItem("googleOAuthState");
 
@@ -43,25 +62,7 @@ export default function Login() {
             }
         });
 
-        // Force a fresh Google auth flow
-        const timestamp = new Date().getTime();
-        const randomState = Math.random().toString(36).substring(7);
-        const authUrl = new URL(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
-        );
-
-        // Add all necessary parameters
-        authUrl.searchParams.append("state", "login");
-        authUrl.searchParams.append("prompt", "select_account");
-        authUrl.searchParams.append("approval_prompt", "force");
-        authUrl.searchParams.append("access_type", "offline");
-        authUrl.searchParams.append("include_granted_scopes", "true");
-        authUrl.searchParams.append("timestamp", timestamp.toString());
-        authUrl.searchParams.append("random", randomState);
-
-        // Open in a new window to avoid cache
-        const authWindow = window.open(authUrl.toString(), "_self");
-        if (authWindow) authWindow.focus();
+        window.open(authUrl.toString(), "_self");
     };
 
     useEffect(() => {

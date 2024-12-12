@@ -54,34 +54,42 @@ export default function Signup() {
 
     // In Signup.tsx
     const handleGoogleSignup = () => {
-        // Clear any existing Google OAuth state
-        localStorage.removeItem("googleOAuthState");
-
-        // Clear any Google-specific cookies
-        document.cookie.split(";").forEach((c) => {
-            if (c.includes("G_AUTH") || c.includes("g_state")) {
-                const cookieName = c.split("=")[0].trim();
-                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-            }
+        // Generate a more robust state that includes signup-specific information
+        const state = JSON.stringify({
+            type: "signup", // Explicitly mark this as a signup flow
+            timestamp: Date.now(),
+            nonce: Math.random().toString(36).substring(2),
         });
 
-        // Force a fresh Google auth flow
-        const timestamp = new Date().getTime();
-        const randomState = Math.random().toString(36).substring(7);
         const authUrl = new URL(
             `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
         );
 
-        // Add all necessary parameters
-        authUrl.searchParams.append("state", "signup");
-        authUrl.searchParams.append("prompt", "select_account");
-        authUrl.searchParams.append("approval_prompt", "force");
-        authUrl.searchParams.append("access_type", "offline");
+        // Add all necessary OAuth parameters
+        authUrl.searchParams.append("state", encodeURIComponent(state));
+        authUrl.searchParams.append("prompt", "select_account"); // Force account picker
+        authUrl.searchParams.append("approval_prompt", "force"); // Force consent screen
+        authUrl.searchParams.append("access_type", "offline"); // Get refresh token
         authUrl.searchParams.append("include_granted_scopes", "true");
-        authUrl.searchParams.append("timestamp", timestamp.toString());
-        authUrl.searchParams.append("random", randomState);
+        authUrl.searchParams.append("response_type", "code"); // Request authorization code
 
-        // Open in a new window to avoid cache
+        // Clear any existing Google OAuth state
+        localStorage.removeItem("googleOAuthState");
+        sessionStorage.removeItem("googleOAuthState");
+
+        // Clear any existing Google-specific cookies
+        document.cookie.split(";").forEach((c) => {
+            const cookie = c.trim();
+            if (cookie.startsWith("G_AUTH") || cookie.startsWith("g_state")) {
+                const cookieName = cookie.split("=")[0];
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+        });
+
+        // Before redirect, store signup intent
+        sessionStorage.setItem("authIntent", "signup");
+
+        // Open the authorization URL in the same window
         const authWindow = window.open(authUrl.toString(), "_self");
         if (authWindow) authWindow.focus();
     };
