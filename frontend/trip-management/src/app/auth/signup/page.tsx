@@ -1,6 +1,6 @@
 "use client"; // Keep this if using app router
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GoogleOutlined } from "@ant-design/icons";
 import AppHeader from "../../components/header";
 import { useMutation } from "@tanstack/react-query";
@@ -31,14 +31,47 @@ export default function Signup() {
 
     const [api, contextHolder] = message.useMessage();
 
+    // In Signup.tsx, after your state declarations
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get("error");
+        const message = urlParams.get("message");
+
+        if (error === "account_exists") {
+            api.open({
+                type: "error",
+                content:
+                    "An account with this Google email already exists. Please log in instead.",
+            });
+            router.push("/auth/login");
+        } else if (message === "signup_success") {
+            api.open({
+                type: "success",
+                content: "Account created successfully. Please log in.",
+            });
+        }
+    }, [api, router]);
+
     // In Signup.tsx
     const handleGoogleSignup = () => {
         // Clear any existing Google OAuth state
         localStorage.removeItem("googleOAuthState");
 
-        // Add timestamp to prevent caching
+        // Clear any existing Google auth cookies
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(
+                    /=.*/,
+                    "=;expires=" + new Date().toUTCString() + ";path=/"
+                );
+        });
+
+        // Add random state to prevent CSRF and caching
         const timestamp = new Date().getTime();
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=signup&prompt=select_account&t=${timestamp}`;
+        const randomState = Math.random().toString(36).substring(7);
+
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=signup&prompt=select_account&approval_prompt=force&t=${timestamp}&rnd=${randomState}`;
     };
 
     const showErrorMessage = (message: string) => {

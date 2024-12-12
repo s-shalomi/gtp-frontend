@@ -54,6 +54,24 @@ export default function Login() {
         }
     }, [router]);
 
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        const message = urlParams.get('message');
+    
+        if (error === 'account_exists') {
+            messageApi.open({
+                type: 'error',
+                content: 'An account with this Google email already exists. Please log in instead.'
+            });
+        } else if (message === 'signup_success') {
+            messageApi.open({
+                type: 'success',
+                content: 'Account created successfully. Please log in.'
+            });
+        }
+    }, [messageApi, router]);
+
     const getInputClassName = (isLogin: boolean) => {
         return `block w-full rounded-md border-2 ${
             isLogin && isLoginError
