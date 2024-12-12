@@ -28,7 +28,7 @@ export default function Signup() {
     });
     const [isPasswordError, setIsPasswordError] = useState<boolean>(false);
     const [isEmailError, setIsEmailError] = useState<boolean>(false);
-    const isMobile = useMediaQuery('(max-width: 400px)');
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
 
     const [api, contextHolder] = message.useMessage();
@@ -140,7 +140,7 @@ export default function Signup() {
         <div
             className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
             style={{
-                backgroundImage: "url(/images/bg1.jpg)",
+                backgroundImage: `${isMobile ? '' : 'url(/images/bg1.jpg)'}`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
@@ -149,7 +149,7 @@ export default function Signup() {
             {contextHolder}
             <AppHeaderMobile />
 
-            <div className="auth-container">
+            <div className="auth-container mb-10">
                 <h2 className="text-center text-3xl font-extrabold text-[#3A2A1D] mb-4">
                     Create an account
                 </h2>
@@ -270,6 +270,7 @@ export default function Signup() {
                         </button>
                     </div>
                 </form>
+            <div className="mb-2 text-white"> . </div>
             </div>
         </div>
     );

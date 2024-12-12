@@ -9,7 +9,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 export default function AppHeaderMobile() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const isMobile = useMediaQuery('(max-width: 400px)');
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     const navigateTo = (path) => {
         setLoading(true)

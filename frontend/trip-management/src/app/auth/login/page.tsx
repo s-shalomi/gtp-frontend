@@ -28,7 +28,7 @@ export default function Login() {
     const [isLoginError, setIsLoginError] = useState<boolean>(false);
     const [messageApi, contextHolder] = message.useMessage();
     const [loading, setLoading] = useState(false);
-    const isMobile = useMediaQuery('(max-width: 400px)');
+    const isMobile = useMediaQuery('(max-width: 768px)');
 
     
 
@@ -129,7 +129,7 @@ export default function Login() {
         <div
             className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
             style={{
-                backgroundImage: "url(/images/bg1.jpg)",
+                backgroundImage: `${isMobile ? '' : 'url(/images/bg1.jpg)'}`,
                 backgroundSize: "cover",
             }}
         >

@@ -5,10 +5,12 @@ import AppHeader from './components/header';
 import './globals.css';
 import { useState } from 'react';
 import { Spin } from 'antd';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const navigateTo = (path) => {
     setLoading(true)
@@ -23,15 +25,16 @@ export default function Home() {
 
     }}>
       {/* Header Section */}
-      <AppHeader/>
-
-      <section className="relative w-full min-h-screen flex flex-col justify-center items-center bg-cover bg-center bg-no-repeat">
+      <div className='bg-cover bg-center bg-no-repeat'>
+        <AppHeader/>
+      </div>
+      <section className={`${isMobile ? 'pt-4' : ''} relative w-full min-h-screen flex flex-col justify-center items-center bg-cover bg-center bg-no-repeat`}>
         <div className="absolute inset-0 bg-black opacity-40"></div>
 
         {/* Main Content */}
         <div className="relative z-10 text-center px-6 sm:px-12">
           {/* Title */}
-          <h1 className="text-6xl sm:text-7xl font-extrabold text-white mb-3 mt-0 leading-tight drop-shadow-md">
+          <h1 className={`${isMobile ? 'text-5xl' : 'text-6xl'} sm:text-7xl font-extrabold text-white mb-3 mt-0 leading-tight drop-shadow-md`}>
             Plan Your Perfect Group Trip
           </h1>
           
@@ -51,22 +54,22 @@ export default function Home() {
           </div>
           
           {/* Features Section */}
-          <div className="mt-5 text-center mb-12">
-            <h2 className="text-5xl font-bold text-white mb-4">Features</h2>
+          <div className="mt-4 text-center mb-12">
+            <h2 className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-bold text-white mb-4`}>Features</h2>
             <p className="text-lg text-white mb-8">Make your trip planning effortless and fun!</p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-12">
-            <div className="flex flex-col items-center bg-gradient-to-r from-[#0066b2] to-[#6CB4EE] p-10 rounded-lg shadow-2xl max-w-sm mx-auto hover:scale-105 transform transition">
-              <h3 className="text-2xl font-semibold mb-4 text-white">Plan Trips</h3>
+          <div className="flex flex-wrap justify-center align-items-center gap-6 pb-4">
+            <div className={`flex flex-col items-center bg-gradient-to-r from-[#0066b2] to-[#6CB4EE] ${isMobile ? 'p-8' : 'p-10'} max-w-sm rounded-lg shadow-2xl mx-auto hover:scale-105 transform transition`}>
+              <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold mb-4 text-white`}>Plan Trips</h3>
               <p className="text-base text-white">Create, customize, and manage your trip details in one place.</p>
             </div>
-            <div className="flex flex-col items-center bg-gradient-to-r from-[#6CB4EE] to-[#0066b2] p-10 rounded-lg shadow-2xl max-w-sm mx-auto hover:scale-105 transform transition">
-              <h3 className="text-2xl font-semibold mb-4 text-white">Track Expenses</h3>
+            <div className={`flex flex-col items-center bg-gradient-to-r from-[#0066b2] to-[#6CB4EE] ${isMobile ? 'p-8' : 'p-10'} max-w-sm rounded-lg shadow-2xl mx-auto hover:scale-105 transform transition`}>
+              <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold mb-4 text-white`}>Track Expenses</h3>
               <p className="text-base text-white">Split costs easily and keep track of payments to ensure fairness.</p>
             </div>
-            <div className="flex flex-col items-center bg-gradient-to-r from-[#0066b2] to-[#6CB4EE] p-10 rounded-lg shadow-2xl max-w-sm mx-auto hover:scale-105 transform transition">
-              <h3 className="text-2xl font-semibold mb-4 text-white">Itinerary</h3>
+            <div className={`flex flex-col items-center bg-gradient-to-r from-[#0066b2] to-[#6CB4EE] ${isMobile ? 'p-8' : 'p-10'}  max-w-sm rounded-lg shadow-2xl mx-auto hover:scale-105 transform transition`}>
+              <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold mb-4 text-white`}>Itinerary</h3>
               <p className="text-base text-white">Effortlessly organize activities and destinations for the perfect trip.</p>
             </div>
           </div>
