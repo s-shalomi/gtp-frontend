@@ -35,9 +35,33 @@ export default function Login() {
         // Clear any existing Google OAuth state
         localStorage.removeItem("googleOAuthState");
 
-        // Add timestamp to prevent caching
+        // Clear any Google-specific cookies
+        document.cookie.split(";").forEach((c) => {
+            if (c.includes("G_AUTH") || c.includes("g_state")) {
+                const cookieName = c.split("=")[0].trim();
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+        });
+
+        // Force a fresh Google auth flow
         const timestamp = new Date().getTime();
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=login&prompt=select_account&t=${timestamp}`;
+        const randomState = Math.random().toString(36).substring(7);
+        const authUrl = new URL(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+        );
+
+        // Add all necessary parameters
+        authUrl.searchParams.append("state", "login");
+        authUrl.searchParams.append("prompt", "select_account");
+        authUrl.searchParams.append("approval_prompt", "force");
+        authUrl.searchParams.append("access_type", "offline");
+        authUrl.searchParams.append("include_granted_scopes", "true");
+        authUrl.searchParams.append("timestamp", timestamp.toString());
+        authUrl.searchParams.append("random", randomState);
+
+        // Open in a new window to avoid cache
+        const authWindow = window.open(authUrl.toString(), "_self");
+        if (authWindow) authWindow.focus();
     };
 
     useEffect(() => {
@@ -56,18 +80,19 @@ export default function Login() {
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
-        const message = urlParams.get('message');
-    
-        if (error === 'account_exists') {
+        const error = urlParams.get("error");
+        const message = urlParams.get("message");
+
+        if (error === "account_exists") {
             messageApi.open({
-                type: 'error',
-                content: 'An account with this Google email already exists. Please log in instead.'
+                type: "error",
+                content:
+                    "An account with this Google email already exists. Please log in instead.",
             });
-        } else if (message === 'signup_success') {
+        } else if (message === "signup_success") {
             messageApi.open({
-                type: 'success',
-                content: 'Account created successfully. Please log in.'
+                type: "success",
+                content: "Account created successfully. Please log in.",
             });
         }
     }, [messageApi, router]);

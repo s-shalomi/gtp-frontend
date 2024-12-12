@@ -57,21 +57,33 @@ export default function Signup() {
         // Clear any existing Google OAuth state
         localStorage.removeItem("googleOAuthState");
 
-        // Clear any existing Google auth cookies
+        // Clear any Google-specific cookies
         document.cookie.split(";").forEach((c) => {
-            document.cookie = c
-                .replace(/^ +/, "")
-                .replace(
-                    /=.*/,
-                    "=;expires=" + new Date().toUTCString() + ";path=/"
-                );
+            if (c.includes("G_AUTH") || c.includes("g_state")) {
+                const cookieName = c.split("=")[0].trim();
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
         });
 
-        // Add random state to prevent CSRF and caching
+        // Force a fresh Google auth flow
         const timestamp = new Date().getTime();
         const randomState = Math.random().toString(36).substring(7);
+        const authUrl = new URL(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+        );
 
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=signup&prompt=select_account&approval_prompt=force&t=${timestamp}&rnd=${randomState}`;
+        // Add all necessary parameters
+        authUrl.searchParams.append("state", "signup");
+        authUrl.searchParams.append("prompt", "select_account");
+        authUrl.searchParams.append("approval_prompt", "force");
+        authUrl.searchParams.append("access_type", "offline");
+        authUrl.searchParams.append("include_granted_scopes", "true");
+        authUrl.searchParams.append("timestamp", timestamp.toString());
+        authUrl.searchParams.append("random", randomState);
+
+        // Open in a new window to avoid cache
+        const authWindow = window.open(authUrl.toString(), "_self");
+        if (authWindow) authWindow.focus();
     };
 
     const showErrorMessage = (message: string) => {
