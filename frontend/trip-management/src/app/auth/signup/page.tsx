@@ -53,50 +53,73 @@ export default function Signup() {
     }, [api, router]);
 
     // In Signup.tsx
-    const handleGoogleSignup = () => {
-        const authUrl = new URL(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/google/signup`
-        );
+    const handleGoogleSignup = async () => {
+        try {
+            // First try to revoke Google's session
+            const revokeUrl = "https://accounts.google.com/logout";
+            const popupWindow = window.open(
+                revokeUrl,
+                "google_logout",
+                "width=450,height=600"
+            );
 
-        // Force new consent prompt and account selection
-        authUrl.searchParams.append("prompt", "consent select_account");
-        authUrl.searchParams.append("response_type", "code");
-        authUrl.searchParams.append("access_type", "offline");
-        // Add a random state to prevent caching
-        authUrl.searchParams.append(
-            "state",
-            Math.random().toString(36).substring(7)
-        );
-        // Add timestamp to prevent caching
-        authUrl.searchParams.append("t", Date.now().toString());
+            // Wait for logout window
+            await new Promise((resolve) =>
+                setTimeout(() => {
+                    if (popupWindow) popupWindow.close();
+                    resolve(true);
+                }, 2000)
+            );
 
-        // Try to revoke Google's session first
-        const revokeUrl = "https://accounts.google.com/logout";
-        const popupWindow = window.open(
-            revokeUrl,
-            "google_logout",
-            "width=450,height=600"
-        );
-
-        setTimeout(() => {
-            if (popupWindow) popupWindow.close();
-
-            // Clear everything before redirect
+            // Clear all storage
             localStorage.clear();
             sessionStorage.clear();
 
-            // Aggressively clear cookies
-            document.cookie.split(";").forEach(function (c) {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(
-                        /=.*/,
-                        "=;expires=" + new Date().toUTCString() + ";path=/"
-                    );
-            });
+            // Aggressively clear all cookies
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                const cookieName = cookie.split("=")[0].trim();
+                // Clear cookie for all possible paths and domains
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+            }
 
+            // Construct the Google auth URL with all necessary parameters
+            const authUrl = new URL(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/google/signup`
+            );
+
+            // Add all parameters to force fresh authentication
+            authUrl.searchParams.append("prompt", "consent select_account");
+            authUrl.searchParams.append("response_type", "code");
+            authUrl.searchParams.append("access_type", "offline");
+            authUrl.searchParams.append("approval_prompt", "force");
+            authUrl.searchParams.append("include_granted_scopes", "true");
+
+            // Add cache busting parameters
+            authUrl.searchParams.append(
+                "state",
+                Math.random().toString(36).substring(7)
+            );
+            authUrl.searchParams.append(
+                "nonce",
+                Math.random().toString(36).substring(7)
+            );
+            authUrl.searchParams.append("timestamp", Date.now().toString());
+
+            // Redirect to the authentication URL
             window.location.href = authUrl.toString();
-        }, 1000);
+        } catch (error) {
+            console.error("Error during Google signup preparation:", error);
+
+            // Fallback - direct to auth URL if something fails
+            const fallbackUrl = new URL(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/google/signup`
+            );
+            fallbackUrl.searchParams.append("prompt", "select_account");
+            window.location.href = fallbackUrl.toString();
+        }
     };
 
     const showErrorMessage = (message: string) => {
