@@ -17,7 +17,7 @@ import { getAllTripGroups } from "../../api/tripgroup";
 import LoadingScreen from "../components/LoadingScreen";
 import { io } from 'socket.io-client';
 import useMediaQuery from '@mui/material/useMediaQuery';
-
+import "../globals.css";
 
 const { Meta } = Card;
 const { Option } = Select;
@@ -557,6 +557,7 @@ export default function Dashboard() {
             </div>
 
             <Modal
+                className="custom-modal"
                 title=""
                 open={modalVisible}
                 onCancel={handleModalClose}

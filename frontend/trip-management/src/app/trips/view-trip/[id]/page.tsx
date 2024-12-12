@@ -197,6 +197,7 @@ export default function ViewTrip() {
     const [loadingTransactionId, setLoadingTransactionId] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
     const [api, contextHolder] = message.useMessage();
+    const [loadingLocations, setLoadingLocations] = useState<Set<number>>(new Set());
 
     const handleCopyLink = async () => {
         try {
@@ -446,6 +447,7 @@ export default function ViewTrip() {
     };
 
     const handleVisitToggle = async (location: Location) => {
+        setLoadingLocations((prev) => new Set(prev.add(location.id!))); // Mark as loading
         try {
             const updatedLocation = await updateLocation(
                 location.id!,
@@ -469,6 +471,12 @@ export default function ViewTrip() {
             api.open({
                 type: "error",
                 content: "Failed to update location status, please try again",
+            });
+        } finally {
+            setLoadingLocations((prev) => {
+                const updated = new Set(prev);
+                updated.delete(location.id!); // Mark as not loading
+                return updated;
             });
         }
     };
@@ -1192,6 +1200,7 @@ export default function ViewTrip() {
                                 onEditLocation={handleEditLocation}
                                 onVisitToggle={handleVisitToggle}
                                 onLocationsFiltered={setFilteredLocations}
+                                loadingLocations={loadingLocations}
                             />
                         </div>
 

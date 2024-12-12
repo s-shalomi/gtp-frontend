@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Timeline, Select, DatePicker, Card, Button, Switch } from "antd";
+import { Timeline, Select, DatePicker, Card, Button, Switch, Spin } from "antd";
 import {
     EditOutlined,
     CheckCircleOutlined,
@@ -27,6 +27,7 @@ interface FilteredLocationsTimelineProps {
     onEditLocation: (location: Location) => void;
     onVisitToggle: (location: Location) => void;
     onLocationsFiltered: (filteredLocations: Location[]) => void;
+    loadingLocations: Set<number>;
 }
 
 const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
@@ -34,6 +35,7 @@ const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
     onEditLocation,
     onVisitToggle,
     onLocationsFiltered,
+    loadingLocations,
 }) => {
     const [filterType, setFilterType] = useState("all");
     const [filteredLocations, setFilteredLocations] =
@@ -117,17 +119,21 @@ const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
                                 />
                             )}
                         </div>
-                        <Switch
-                            checked={location.visited}
-                            onChange={() => onVisitToggle(location)}
-                            checkedChildren="Visited"
-                            unCheckedChildren="Not Visited"
-                            className={`${
-                                location.visited
-                                    ? "bg-green-500"
-                                    : "bg-gray-400"
-                            }`}
-                        />
+                        {loadingLocations.has(location.id!) ? (  // Show loading spinner if toggling
+                            <Spin size="small" />
+                        ) : (
+                            <Switch
+                                checked={location.visited}
+                                onChange={() => onVisitToggle(location)}
+                                checkedChildren="Visited"
+                                unCheckedChildren="Not Visited"
+                                className={`${
+                                    location.visited
+                                        ? "bg-green-500"
+                                        : "bg-gray-400"
+                                }`}
+                            />
+                        )}
                     </div>
                     <span className="text-sm text-gray-600">
                         {new Date(location.start_date).toLocaleDateString()} -{" "}
@@ -175,7 +181,7 @@ const FilteredLocationsTimeline: React.FC<FilteredLocationsTimelineProps> = ({
 
             {filteredLocations.length > 0 ? (
                 <div
-                    className="max-h-96 overflow-y-auto pl-2"
+                    className="h-[450px] flex-1 overflow-y-auto pl-2 custom-modal"
                     style={{ paddingRight: "0.5rem" }}
                 >
                     <Timeline
