@@ -180,7 +180,7 @@ export default function JoinTripPage({ params }: PageProps) {
             type: 'warning',
             content: "Invitation declined",
         });
-        router.push("/");
+        router.push("/dashboard");
     };
 
     if (isLoading) {
