@@ -58,23 +58,45 @@ export default function Signup() {
             `${process.env.NEXT_PUBLIC_API_URL}/auth/google/signup`
         );
 
-        // Clear all possible storage
-        localStorage.clear();
-        sessionStorage.clear();
+        // Force new consent prompt and account selection
+        authUrl.searchParams.append("prompt", "consent select_account");
+        authUrl.searchParams.append("response_type", "code");
+        authUrl.searchParams.append("access_type", "offline");
+        // Add a random state to prevent caching
+        authUrl.searchParams.append(
+            "state",
+            Math.random().toString(36).substring(7)
+        );
+        // Add timestamp to prevent caching
+        authUrl.searchParams.append("t", Date.now().toString());
 
-        // Clear cookies more aggressively
-        const cookies = document.cookie.split(";");
-        for (let cookie of cookies) {
-            const cookieName = cookie.split("=")[0].trim();
-            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
-            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
-        }
+        // Try to revoke Google's session first
+        const revokeUrl = "https://accounts.google.com/logout";
+        const popupWindow = window.open(
+            revokeUrl,
+            "google_logout",
+            "width=450,height=600"
+        );
 
-        // Add a random query parameter to bust any cache
-        authUrl.searchParams.append("_", Date.now().toString());
+        setTimeout(() => {
+            if (popupWindow) popupWindow.close();
 
-        // Open in same window but force reload
-        window.location.href = authUrl.toString();
+            // Clear everything before redirect
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Aggressively clear cookies
+            document.cookie.split(";").forEach(function (c) {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(
+                        /=.*/,
+                        "=;expires=" + new Date().toUTCString() + ";path=/"
+                    );
+            });
+
+            window.location.href = authUrl.toString();
+        }, 1000);
     };
 
     const showErrorMessage = (message: string) => {
