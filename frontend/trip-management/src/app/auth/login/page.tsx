@@ -33,36 +33,27 @@ export default function Login() {
 
     // In both Login.tsx and Signup.tsx
     const handleGoogleLogin = () => {
-        // or handleGoogleSignup
-        const state = JSON.stringify({
-            type: "login", // or 'signup' for Signup.tsx
-            timestamp: Date.now(),
-            nonce: Math.random().toString(36).substring(2),
-        });
-
         const authUrl = new URL(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/google/login`
         );
-        authUrl.searchParams.append("state", encodeURIComponent(state));
-        authUrl.searchParams.append("prompt", "select_account"); // Forces account selection
-        authUrl.searchParams.append("access_type", "offline");
 
-        // Add these parameters to force fresh authentication
-        authUrl.searchParams.append("approval_prompt", "force");
-        authUrl.searchParams.append("include_granted_scopes", "true");
+        // Clear all possible storage
+        localStorage.clear();
+        sessionStorage.clear();
 
-        // Clear any existing Google OAuth state
-        localStorage.removeItem("googleOAuthState");
+        // Clear cookies more aggressively
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            const cookieName = cookie.split("=")[0].trim();
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+        }
 
-        // Clear any Google-specific cookies
-        document.cookie.split(";").forEach((c) => {
-            if (c.includes("G_AUTH") || c.includes("g_state")) {
-                const cookieName = c.split("=")[0].trim();
-                document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-            }
-        });
+        // Add a random query parameter to bust any cache
+        authUrl.searchParams.append("_", Date.now().toString());
 
-        window.open(authUrl.toString(), "_self");
+        // Open in same window but force reload
+        window.location.href = authUrl.toString();
     };
 
     useEffect(() => {

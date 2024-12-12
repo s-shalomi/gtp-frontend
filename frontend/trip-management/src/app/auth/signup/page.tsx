@@ -54,23 +54,9 @@ export default function Signup() {
 
     // In Signup.tsx
     const handleGoogleSignup = () => {
-        // Generate state with signup intent
-        const state = JSON.stringify({
-            type: "signup",
-            timestamp: Date.now(),
-            nonce: Math.random().toString(36).substring(2),
-        });
-
         const authUrl = new URL(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/google/signup`
         );
-
-        // Add all necessary OAuth parameters
-        authUrl.searchParams.append("state", encodeURIComponent(state));
-        authUrl.searchParams.append("prompt", "select_account consent");
-        authUrl.searchParams.append("access_type", "offline");
-        authUrl.searchParams.append("approval_prompt", "force");
-        authUrl.searchParams.append("include_granted_scopes", "true");
 
         // Clear all possible storage
         localStorage.clear();
