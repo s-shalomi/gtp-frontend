@@ -8,9 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../../../contexts/AuthContext";
 import { message, notification, Spin } from "antd";
 import Link from "next/link";
-import useMediaQuery from '@mui/material/useMediaQuery';
+import useMediaQuery from "@mui/material/useMediaQuery";
 import AppHeaderMobile from "../../components/headerMobile";
-
 
 interface SignupFormData {
     email: string;
@@ -28,12 +27,18 @@ export default function Login() {
     const [isLoginError, setIsLoginError] = useState<boolean>(false);
     const [messageApi, contextHolder] = message.useMessage();
     const [loading, setLoading] = useState(false);
-    const isMobile = useMediaQuery('(max-width: 768px)');
-
-    
-
+    const isMobile = useMediaQuery("(max-width: 768px)");
 
     const { setAuthTokens } = useAuth();
+
+    const handleGoogleLogin = () => {
+        // Clear any existing Google OAuth state
+        localStorage.removeItem("googleOAuthState");
+
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=login&prompt=select_account&t=${timestamp}`;
+    };
 
     useEffect(() => {
         const logoutMessage = sessionStorage.getItem("logoutMessage");
@@ -61,17 +66,20 @@ export default function Login() {
         mutationFn: async (
             userData: Omit<SignupFormData, "password_match">
         ) => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: userData.email,
-                    password: userData.password,
-                }),
-                credentials: "include", // Important: this enables sending/receiving cookies
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/signin`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email: userData.email,
+                        password: userData.password,
+                    }),
+                    credentials: "include", // Important: this enables sending/receiving cookies
+                }
+            );
 
             if (!response.ok) {
                 const errorData = await response.json();
@@ -127,9 +135,13 @@ export default function Login() {
 
     return (
         <div
-            className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
+            className={`min-h-screen ${
+                isMobile
+                    ? "bg-white"
+                    : "bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]"
+            } text-black font-sans`}
             style={{
-                backgroundImage: `${isMobile ? '' : 'url(/images/bg1.jpg)'}`,
+                backgroundImage: `${isMobile ? "" : "url(/images/bg1.jpg)"}`,
                 backgroundSize: "cover",
             }}
         >
@@ -194,19 +206,18 @@ export default function Login() {
 
                     <div className="flex justify-center">
                         <p>Don't have an account?</p>
-                        <Link href="/auth/signup" className="text-[#6CB4EE] ml-2 hover:underline">
+                        <Link
+                            href="/auth/signup"
+                            className="text-[#6CB4EE] ml-2 hover:underline"
+                        >
                             Sign up
                         </Link>
                     </div>
 
-
                     <div className="flex justify-center space-x-2">
                         <button
                             type="button"
-                            onClick={() =>
-                                (window.location.href =
-                                    `${process.env.NEXT_PUBLIC_API_URL}/auth/google`)
-                            }
+                            onClick={handleGoogleLogin}
                             className="w-full text-center py-3 bg-white border-2 rounded-lg shadow-md hover:bg-[#f0f0f0] focus:ring-2 focus:ring-[#6CB4EE] focus:ring-offset-2 transition duration-200"
                         >
                             <GoogleOutlined className="px-4" />
@@ -235,16 +246,22 @@ export default function Login() {
             {loading && (
                 <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-60 z-50">
                     <div className="flex flex-col items-center justify-center space-y-4 p-8 bg-white rounded-lg shadow-xl opacity-90">
-                    <Spin size="large" tip="Logging out..." className="text-[#0066b2]" />
+                        <Spin
+                            size="large"
+                            tip="Logging out..."
+                            className="text-[#0066b2]"
+                        />
 
-                    <h2 className="text-2xl font-semibold text-[#002D62] animate-pulse">
-                        Taking you to the dashboard...
-                    </h2>
+                        <h2 className="text-2xl font-semibold text-[#002D62] animate-pulse">
+                            Taking you to the dashboard...
+                        </h2>
 
-                    <p className="text-gray-500 text-sm">This may take a few seconds...</p>
+                        <p className="text-gray-500 text-sm">
+                            This may take a few seconds...
+                        </p>
                     </div>
                 </div>
-                )}
+            )}
         </div>
     );
 }

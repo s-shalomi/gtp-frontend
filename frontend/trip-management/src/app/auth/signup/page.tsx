@@ -7,9 +7,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation"; // or 'next/router' for pages router
 import Link from "next/link";
 import { notification, message } from "antd";
-import useMediaQuery from '@mui/material/useMediaQuery';
+import useMediaQuery from "@mui/material/useMediaQuery";
 import AppHeaderMobile from "../../components/headerMobile";
-
 
 interface SignupFormData {
     name: string;
@@ -28,21 +27,26 @@ export default function Signup() {
     });
     const [isPasswordError, setIsPasswordError] = useState<boolean>(false);
     const [isEmailError, setIsEmailError] = useState<boolean>(false);
-    const isMobile = useMediaQuery('(max-width: 768px)');
-
+    const isMobile = useMediaQuery("(max-width: 768px)");
 
     const [api, contextHolder] = message.useMessage();
 
+    // In Signup.tsx
     const handleGoogleSignup = () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+        // Clear any existing Google OAuth state
+        localStorage.removeItem("googleOAuthState");
+
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=signup&prompt=select_account&t=${timestamp}`;
     };
 
     const showErrorMessage = (message: string) => {
         api.open({
-            type: 'error',
+            type: "error",
             content: message,
-          });
-    }
+        });
+    };
 
     const getInputClassName = (isPassword: boolean) => {
         return `block w-full rounded-md border-2 ${
@@ -64,27 +68,30 @@ export default function Signup() {
         mutationFn: async (
             userData: Omit<SignupFormData, "password_match">
         ) => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signup`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    name: userData.name,
-                    email: userData.email,
-                    password_hash: userData.password,
-                    created_by: 1,
-                    updated_by: 1,
-                    refreshToken: "",
-                }),
-            });
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/signup`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        name: userData.name,
+                        email: userData.email,
+                        password_hash: userData.password,
+                        created_by: 1,
+                        updated_by: 1,
+                        refreshToken: "",
+                    }),
+                }
+            );
 
             if (!response.ok) {
                 const errorData = await response.json();
                 if (errorData.message === "User already exists") {
                     setIsEmailError(true);
                 } else {
-                    showErrorMessage("Failed to sign up. Try again")
+                    showErrorMessage("Failed to sign up. Try again");
                 }
                 throw new Error(errorData.message || "Failed to sign up");
             }
@@ -138,9 +145,13 @@ export default function Signup() {
 
     return (
         <div
-            className={`min-h-screen ${isMobile ? 'bg-white' : 'bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]'} text-black font-sans`}
+            className={`min-h-screen ${
+                isMobile
+                    ? "bg-white"
+                    : "bg-gradient-to-r from-[#3A2A1D] to-[#5C7457]"
+            } text-black font-sans`}
             style={{
-                backgroundImage: `${isMobile ? '' : 'url(/images/bg1.jpg)'}`,
+                backgroundImage: `${isMobile ? "" : "url(/images/bg1.jpg)"}`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
@@ -237,7 +248,10 @@ export default function Signup() {
 
                     <div className="flex justify-center">
                         <p>Already have an account?</p>
-                        <Link href="/auth/login" className="text-[#6CB4EE] ml-2 hover:underline">
+                        <Link
+                            href="/auth/login"
+                            className="text-[#6CB4EE] ml-2 hover:underline"
+                        >
                             Login
                         </Link>
                     </div>
@@ -270,7 +284,7 @@ export default function Signup() {
                         </button>
                     </div>
                 </form>
-            <div className="mb-2 text-white"> . </div>
+                <div className="mb-2 text-white"> . </div>
             </div>
         </div>
     );
