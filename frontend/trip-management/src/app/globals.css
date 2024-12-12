@@ -81,7 +81,3 @@ body {
 .custom-modal::-webkit-scrollbar-thumb:active {
   background-color: #d1cdcd; /* Thumb color when active */
 }
-
-.ant-card-body {
-  height: 100%;
-}
