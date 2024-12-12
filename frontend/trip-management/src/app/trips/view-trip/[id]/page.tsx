@@ -156,6 +156,86 @@ const visitedIcon = (
     />
 );
 
+const EditLocationModal = ({
+    visible,
+    onCancel,
+    onSubmit,
+    form,
+    loading,
+    renderDateFields,
+}) => (
+    <Modal
+        title="Edit Destination"
+        open={visible}
+        onCancel={onCancel}
+        maskClosable={!loading}
+        closable={!loading}
+        keyboard={!loading}
+        destroyOnClose={false}
+        footer={null}
+        width={600}
+    >
+        <Form
+            form={form}
+            layout="vertical"
+            onFinish={onSubmit}
+            preserve={false}
+        >
+            <Form.Item
+                label="Activity Name"
+                name="activityName"
+                rules={[
+                    {
+                        required: true,
+                        message: "Please enter an activity name",
+                    },
+                ]}
+            >
+                <Input placeholder="Enter activity name" disabled={loading} />
+            </Form.Item>
+
+            {renderDateFields()}
+
+            <Form.Item
+                label="Latitude"
+                name="lat"
+                rules={[{ required: true, message: "Please enter a latitude" }]}
+            >
+                <Input placeholder="Enter latitude" disabled={loading} />
+            </Form.Item>
+
+            <Form.Item
+                label="Longitude"
+                name="lng"
+                rules={[
+                    { required: true, message: "Please enter a longitude" },
+                ]}
+            >
+                <Input placeholder="Enter longitude" disabled={loading} />
+            </Form.Item>
+
+            <Form.Item label="Notes" name="notes">
+                <Input.TextArea
+                    placeholder="Enter any notes"
+                    disabled={loading}
+                />
+            </Form.Item>
+
+            <Form.Item>
+                <Button
+                    type="primary"
+                    htmlType="submit"
+                    className="bg-[#002D62]"
+                    loading={loading}
+                    disabled={loading}
+                >
+                    Update
+                </Button>
+            </Form.Item>
+        </Form>
+    </Modal>
+);
+
 export default function ViewTrip() {
     // 1. Get all router/params/auth hooks first
     const router = useRouter();
@@ -197,6 +277,13 @@ export default function ViewTrip() {
     const [loadingTransactionId, setLoadingTransactionId] = useState(null);
     const [isCopied, setIsCopied] = useState(false);
     const [api, contextHolder] = message.useMessage();
+
+    const handleModalCancel = () => {
+        if (!isLocationLoading) {
+            setIsEditModalVisible(false);
+            editForm.resetFields();
+        }
+    };
 
     const handleCopyLink = async () => {
         try {
@@ -406,7 +493,9 @@ export default function ViewTrip() {
         if (!selectedLocation?.id) return;
 
         try {
+            // Set loading state first
             setIsLocationLoading(true);
+
             const updateData = {
                 name: values.activityName,
                 description: values.notes || "",
@@ -414,9 +503,10 @@ export default function ViewTrip() {
                 longitude: parseFloat(values.lng),
                 start_date: values.startDate.format("YYYY-MM-DD"),
                 end_date: values.endDate.format("YYYY-MM-DD"),
-                updated_by: userId, // Replace with actual user ID
+                updated_by: userId,
             };
 
+            // Wait for the API call to complete
             const updatedLocation = await updateLocation(
                 selectedLocation.id,
                 updateData,
@@ -424,7 +514,7 @@ export default function ViewTrip() {
                 setAuthTokens
             );
 
-            // Update locations state
+            // After successful update, update the locations state
             setLocations(
                 locations.map((loc) =>
                     loc.id === selectedLocation.id
@@ -433,14 +523,16 @@ export default function ViewTrip() {
                 )
             );
 
-            setIsEditModalVisible(false);
+            // Clear form and close modal only after everything is successful
             editForm.resetFields();
+            setIsEditModalVisible(false);
         } catch (error) {
             api.open({
                 type: "error",
                 content: "Failed to update location. Please try again",
             });
         } finally {
+            // Always set loading to false at the end
             setIsLocationLoading(false);
         }
     };
@@ -630,17 +722,17 @@ export default function ViewTrip() {
         await handleAddLocation(values);
     };
 
-    const renderDateFields = () => {
+    const renderDateFields = (loading) => {
         const tripStartDate = dayjs(tripData?.trip.start_date)
             .endOf("day")
             .subtract(1, "day")
             .startOf("day")
-            .add(1, "day"); // Adjust to exclude the trip's start date
+            .add(1, "day");
         const tripEndDate = dayjs(tripData?.trip.end_date)
             .endOf("day")
             .subtract(1, "day")
             .startOf("day")
-            .subtract(1, "day"); // Adjust to exclude the trip's end date
+            .subtract(1, "day");
 
         return (
             <>
@@ -680,6 +772,7 @@ export default function ViewTrip() {
                         style={{ width: "100%" }}
                         showTime={false}
                         format="YYYY-MM-DD"
+                        disabled={loading}
                         disabledDate={(current) => {
                             if (!current) return false;
                             const currentDate = current.startOf("day");
@@ -731,6 +824,7 @@ export default function ViewTrip() {
                         style={{ width: "100%" }}
                         showTime={false}
                         format="YYYY-MM-DD"
+                        disabled={loading}
                         disabledDate={(current) => {
                             if (!current) return false;
                             const startDate = form.getFieldValue("startDate");
@@ -747,71 +841,6 @@ export default function ViewTrip() {
         );
     };
 
-    const EditLocationModal = () => (
-        <Modal
-            title="Edit Destination"
-            open={isEditModalVisible}
-            onCancel={() => {
-                setIsEditModalVisible(false);
-                editForm.resetFields();
-            }}
-            footer={null}
-            width={600}
-        >
-            <Form form={editForm} layout="vertical" onFinish={handleEditSubmit}>
-                <Form.Item
-                    label="Activity Name"
-                    name="activityName"
-                    rules={[
-                        {
-                            required: true,
-                            message: "Please enter an activity name",
-                        },
-                    ]}
-                >
-                    <Input placeholder="Enter activity name" />
-                </Form.Item>
-
-                {renderDateFields()}
-
-                <Form.Item
-                    label="Latitude"
-                    name="lat"
-                    rules={[
-                        { required: true, message: "Please enter a latitude" },
-                    ]}
-                >
-                    <Input placeholder="Enter latitude" />
-                </Form.Item>
-
-                <Form.Item
-                    label="Longitude"
-                    name="lng"
-                    rules={[
-                        { required: true, message: "Please enter a longitude" },
-                    ]}
-                >
-                    <Input placeholder="Enter longitude" />
-                </Form.Item>
-
-                <Form.Item label="Notes" name="notes">
-                    <Input.TextArea placeholder="Enter any notes" />
-                </Form.Item>
-
-                <Form.Item>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        className="bg-[#002D62]"
-                        loading={isLocationLoading}
-                        >
-                        Update
-                    </Button>
-                </Form.Item>
-            </Form>
-        </Modal>
-    );
-    
     // Loading states
     // Replace the existing loading return statement with this:
     if (isLoading) {
@@ -1366,7 +1395,7 @@ export default function ViewTrip() {
                             <Input placeholder="Enter activity name" />
                         </Form.Item>
 
-                        {renderDateFields()}
+                        {renderDateFields(false)}
 
                         <Form.Item
                             label="Latitude"
@@ -1431,7 +1460,14 @@ export default function ViewTrip() {
                     </div>
                 )}
             </div>
-            <EditLocationModal />
+            <EditLocationModal
+                visible={isEditModalVisible}
+                onCancel={handleModalCancel}
+                onSubmit={handleEditSubmit}
+                form={editForm}
+                loading={isLocationLoading}
+                renderDateFields={() => renderDateFields(isLocationLoading)}
+            />
         </ConfigProvider>
     );
 }
